@@ -1,0 +1,82 @@
+1.1
+
+CREATE TABLE bruzdziakm.kreatura_5 LIKE wikingowie.kreatura;
+INSERT INTO bruzdziakm.kreatura_5 SELECT * FROM wikingowie.kreatura;
+
+CREATE TABLE bruzdziakm.uczestnicy_5 LIKE wikingowie.uczestnicy;
+INSERT INTO bruzdziakm.uczestnicy_5 SELECT * FROM wikingowie.uczestnicy;
+
+CREATE TABLE bruzdziakm.etapy_wyprawy_5 LIKE wikingowie.etapy_wyprawy;
+INSERT INTO bruzdziakm.etapy_wyprawy_5 SELECT * FROM wikingowie.etapy_wyprawy;
+
+CREATE TABLE bruzdziakm.sektor_5 LIKE wikingowie.sektor;
+INSERT INTO bruzdziakm.sektor_5 SELECT * FROM wikingowie.sektor;
+
+CREATE TABLE bruzdziakm.wyprawa_5 LIKE wikingowie.wyprawa;
+INSERT INTO bruzdziakm.wyprawa_5 SELECT * FROM wikingowie.wyprawa;
+
+1.2
+
+SELECT kreatura.nazwa
+FROM kreatura
+LEFT JOIN wyprawa_5 ON kreatura.idKreatury=wyprawa_5.kierownik
+WHERE wyprawa_5.kierownik IS NULL;
+
+1.3
+
+SELECT wyprawa_5.nazwa, SUM(ekwipunek.ilosc) AS suma_ilosci
+FROM wyprawa_5
+	INNER JOIN kreatura ON wyprawa_5.kierownik=kreatura.idKreatury
+	INNER JOIN ekwipunek ON kreatura.idKreatury=ekwipunek.idKreatury
+GROUP BY kreatura.idKreatury, wyprawa_5.nazwa;
+
+-----------------------------------------------------------------
+
+2.1
+
+SELECT wyprawa_5.id_wyprawy, COUNT(wyprawa_5.kierownik) AS "ilosc", GROUP_CONCAT(kreatura.nazwa) AS "imiona"
+FROM wyprawa_5
+	INNER JOIN kreatura ON wyprawa_5.kierownik=kreatura.idKreatury
+GROUP BY wyprawa_5.id_wyprawy;
+
+2.2 (WIP)
+
+SELECT etapy_wyprawy_5.idEtapu, sektor_5.nazwa, kreatura.nazwa
+FROM etapy_wyprawy_5
+	INNER JOIN sektor_5 ON etapy_wyprawy_5.sektor=sektor_5.id_sektora
+	INNER JOIN wyprawa_5 ON etapy_wyprawy_5.idWyprawy=wyprawa_5.id_wyprawy
+	INNER JOIN kreatura ON wyprawa_5.kierownik=kreatura.nazwa
+GROUP BY etapy_wyprawy_5.idEtapu, sektor_5.nazwa, kreatura.nazwa
+ORDER BY wyprawa_5.data_rozpoczecia, etapy_wyprawy_5.kolejnosc;
+
+-----------------------------------------------------------------
+
+3.1
+
+SELECT sektor_5.nazwa, SUM(COUNT(etapy_wyprawy_5.idWyprawy))
+FROM sektor_5
+	INNER JOIN etapy_wyprawy_5 ON sektor_5.id_sektora=etapy_wyprawy_5.sektor
+GROUP BY sektor_5.nazwa;
+3.2 
+
+-----------------------------------------------------------------
+
+4.1
+
+SELECT wyprawa_5.id_wyprawy, wyprawa_5.nazwa, SUM(LENGTH(etapy_wyprawy_5.dziennik)) AS ilosc_znakow
+FROM wyprawa_5
+	INNER JOIN etapy_wyprawy_5 ON wyprawa_5.id_wyprawy=etapy_wyprawy_5.idWyprawy
+GROUP BY wyprawa_5.id_wyprawy
+HAVING SUM(LENGTH(etapy_wyprawy_5.dziennik)) < 400;
+
+4.2 
+
+SELECT wyprawa_5.nazwa, SUM(zasob.ilosc*zasob.waga)
+FROM wyprawa_5
+	INNER JOIN ekwipunek ON wyprawa_5.kierownik=ekwipunek.idKreatury
+	INNER JOIN zasob ON ekwipunek.idZasobu=zasob.idZasobu
+GROUP BY wyprawa_5.nazwa;
+
+-----------------------------------------------------------------
+
+5.1
